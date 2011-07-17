@@ -14,6 +14,14 @@ module Raibo
       @handlers.push(handler || block)
     end
 
+    def match(regexp, &block)
+      use do |msg|
+        if msg.body =~ regexp
+          exec_with_var_arity($~, msg, &block)
+        end
+      end
+    end
+
     def run(async=false)
       if async
         @thread = Thread.new { run_sync }
@@ -46,10 +54,13 @@ module Raibo
             end
           end
           @handlers.each do |handler|
-            break if handler.call(@connection, message)
+            if handler.is_a?(Proc)
+              break if @connection.instance_exec(message, &handler)
+            else
+              break if handler.call(@connection, message)
+            end
           end
         end
       end
-
   end
 end

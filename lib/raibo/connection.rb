@@ -12,14 +12,14 @@ module Raibo
 
     def open
       @connection = TCPSocket.new(@server, @port)
-      send "USER #{@nick} 0 * :Hi"
+      send "USER #{@nick} 0 * :Hello"
       nick @nick
 
       handle_lines do |line|
         case line
         when /:Nickname is already in use/
-          @nick = "#{@nick}_"
-          nick @nick
+          @connection.close
+          raise "Connection error: Nickname is already in use."
         when /001/
           join @channel
           break
@@ -41,6 +41,8 @@ module Raibo
           yield line
         end
       end
+    rescue IOError
+      close
     end
 
     def nick(nick)
@@ -66,6 +68,15 @@ module Raibo
     def send(str)
       puts "<-- #{str}" if @verbose
       @connection.puts(str)
+    end
+
+    def exec_with_var_arity(*args, &block)
+      arity = block.arity
+      if arity <= 0
+        instance_eval(&block)
+      else
+        instance_exec(*args.take(block.arity), &block)
+      end
     end
   end
 end
