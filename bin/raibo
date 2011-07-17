@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'raibo'
+
+botfile = ARGV.shift || 'Botfile'
+
+if Dir[botfile].empty?
+  puts "Usage: raibo [botfile]"
+end
+
+b = Raibo::Bot.new('irc.he.net', :nick => 'raibot', :port => 6667, :verbose => true)
+b.instance_eval(File.read(botfile))
+b.run
