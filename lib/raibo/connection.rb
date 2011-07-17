@@ -3,11 +3,11 @@ module Raibo
     attr_accessor :server, :port, :nick, :channel
 
     def initialize(server, opts={})
-      @server   = server
-      @port     = opts[:port]     || 6667
-      @nick     = opts[:nick]     || 'Raibo'
-      @channel  = opts[:channel]  || '#raibo'
-      @verbose  = !!opts[:verbose]
+      @server  = server
+      @port    = opts[:port]    || 6667
+      @nick    = opts[:nick]    || 'Raibo'
+      @channel = opts[:channel] || '#raibo'
+      @verbose = !!opts[:verbose]
     end
 
     def open
@@ -17,7 +17,7 @@ module Raibo
 
       handle_lines do |line|
         case line
-        when /:Nickname is already in use./
+        when /:Nickname is already in use/
           @nick = "#{@nick}_"
           nick @nick
         when /001/
