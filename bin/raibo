@@ -2,13 +2,60 @@
 
 require 'rubygems'
 require 'raibo'
+require 'optparse'
+require 'ostruct'
 
-botfile = ARGV.shift || 'Botfile'
+options = OpenStruct.new
+options.botfile = 'Botfile'
+options.nick    = 'Raibo'
+options.channel = '#raibo'
+options.verbose = false
 
-if Dir[botfile].empty?
-  puts "Usage: raibo [botfile]"
+opts = OptionParser.new do |o|
+  o.banner = "Usage: raibo <server>[:<port>] [options]"
+
+  o.on("-b", "--botfile [FILE]",
+       "specify the location of the bot's configuration (default is \"./Botfile\")") do |file|
+    options.botfile = file
+  end
+
+  o.on("-n", "--nick [NICK]",
+       "specify the nick to use (default is \"Raibo\")") do |nick|
+    options.nick = nick
+  end
+
+  o.on("-c", "--channel [CHANNEL]",
+       "specify the channel to use (default is \"#raibo\")") do |channel|
+    options.channel = channel
+ end
+
+  o.on("-v", "--verbose", "show every incoming and outgoing line") do
+    options.verbose = true
+  end
+
+  o.on("-V", "--version", "show raibo's version") do
+    puts Raibo::VERSION
+    exit 0
+  end
+
+  o.on("-h", "--help", "show this message") do
+    puts opts
+    exit 0
+  end
+end
+opts.parse!(ARGV)
+
+if ARGV.length != 1
+  puts opts
+  exit 1
 end
 
-b = Raibo::Bot.new('irc.he.net', :nick => 'raibot', :port => 6667, :verbose => true)
-b.instance_eval(File.read(botfile))
+server, port = ARGV.shift.split(':')
+
+b = Raibo::Bot.new(server,
+                   :port    => port,
+                   :nick    => options.nick,
+                   :channel => options.channel,
+                   :verbose => options.verbose)
+b.instance_eval(File.read(options.botfile))
 b.run
