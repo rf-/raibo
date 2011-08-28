@@ -1,25 +1,22 @@
 module Raibo
   class Bot
     def initialize(*args)
-      @handlers = []
-
       if args.first.is_a?(Raibo::Connection)
         @connection = args.shift
       else
         @connection = Raibo::Connection.new(*args)
       end
+
+      reset
+    end
+
+    def reset
+      @handlers = []
+      @dsl = Raibo::DSL.new(self, @connection)
     end
 
     def use(handler=nil, &block)
       @handlers.push(handler || block)
-    end
-
-    def match(regexp, &block)
-      use do |msg|
-        if msg.body =~ regexp
-          exec_with_var_arity($~, msg, &block)
-        end
-      end
     end
 
     def run(async=false)
@@ -40,6 +37,10 @@ module Raibo
       @thread.alive? if @thread
     end
 
+    def load_config_file(filename)
+      @dsl.instance_eval(IO.read(filename), filename)
+    end
+
     private
       def run_sync
         @connection.open
@@ -55,7 +56,7 @@ module Raibo
           end
           @handlers.each do |handler|
             if handler.is_a?(Proc)
-              break if @connection.instance_exec(message, &handler)
+              break if @dsl.instance_exec(message, &handler)
             else
               break if handler.call(@connection, message)
             end

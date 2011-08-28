@@ -57,5 +57,5 @@ b = Raibo::Bot.new(server,
                    :nick    => options.nick,
                    :channel => options.channel,
                    :verbose => options.verbose)
-b.instance_eval(File.read(options.botfile))
+b.load_config_file(options.botfile)
 b.run

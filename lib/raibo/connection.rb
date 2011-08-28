@@ -69,14 +69,5 @@ module Raibo
       puts "<-- #{str}" if @verbose
       @connection.puts(str)
     end
-
-    def exec_with_var_arity(*args, &block)
-      arity = block.arity
-      if arity <= 0
-        instance_eval(&block)
-      else
-        instance_exec(*args.take(block.arity), &block)
-      end
-    end
   end
 end
