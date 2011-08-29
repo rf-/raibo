@@ -1,5 +1,7 @@
 module Raibo
   class Bot
+    attr_accessor :docs
+
     def initialize(*args)
       if args.first.is_a?(Raibo::Connection)
         @connection = args.shift
@@ -12,11 +14,19 @@ module Raibo
 
     def reset
       @handlers = []
+      @docs = []
       @dsl = Raibo::DSL.new(self, @connection)
+
+      use do |msg|
+        if msg.body == '!help'
+          @bot.help
+        end
+      end
     end
 
     def use(handler=nil, &block)
       @handlers.push(handler || block)
+      @docs.concat(handler.docs) if handler.respond_to?(:docs)
     end
 
     def run(async=false)
@@ -39,6 +49,12 @@ module Raibo
 
     def load_config_file(filename)
       @dsl.instance_eval(IO.read(filename), filename)
+    end
+
+    def help
+      width = [15, @docs.map(&:first).map(&:length).max].max
+
+      @connection.say(*@docs.map { |cmd, desc| "%-#{width}s  %s" % [cmd, desc] })
     end
 
     private

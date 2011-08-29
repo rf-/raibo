@@ -17,6 +17,10 @@ module Raibo
       end
     end
 
+    def doc(cmd, desc='')
+      @bot.docs << [cmd, desc]
+    end
+
     def method_missing(meth, *args, &block)
       @connection.__send__(meth, *args, &block)
     end
