@@ -57,8 +57,8 @@ module Raibo
       send "PART #{channel}"
     end
 
-    def say(msg)
-      msg(@channel, msg)
+    def say(*msgs)
+      msgs.each { |msg| msg(@channel, msg) }
     end
 
     def msg(dest, msg)

@@ -55,10 +55,14 @@ module Raibo
             end
           end
           @handlers.each do |handler|
-            if handler.is_a?(Proc)
-              break if @dsl.instance_exec(message, &handler)
-            else
-              break if handler.call(@connection, message)
+            begin
+              if handler.is_a?(Proc)
+                break if @dsl.instance_exec(message, &handler)
+              else
+                break if handler.call(@connection, message)
+              end
+            rescue Exception => e
+              @connection.say e.inspect
             end
           end
         end
