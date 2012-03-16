@@ -14,6 +14,13 @@ module Raibo
       @to   = get_to
       @body = get_body
     end
+    
+    def initialize(kind, from, to, body)
+      @kind = kind
+      @from = from
+      @to = to
+      @body = body
+    end
 
     private
       def parse_line(line)

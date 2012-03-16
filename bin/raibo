@@ -8,26 +8,21 @@ require 'ostruct'
 
 options = OpenStruct.new
 options.botfile = 'Botfile'
-options.nick    = 'Raibo'
-options.channel = '#raibo'
+options.room    = 'Raibo'
+options.token   = 'f79844da660439c4f52ba87061eead2674bbfd78'
 options.verbose = false
 
 opts = OptionParser.new do |o|
-  o.banner = "Usage: raibo <server>[:<port>] [options]"
+  o.banner = "Usage: raibo <subdomain> [options]"
 
   o.on("-b", "--botfile [FILE]",
        "specify the location of the bot's configuration (default is \"./Botfile\")") do |file|
     options.botfile = file
   end
 
-  o.on("-n", "--nick [NICK]",
-       "specify the nick to use (default is \"Raibo\")") do |nick|
-    options.nick = nick
-  end
-
-  o.on("-c", "--channel [CHANNEL]",
-       "specify the channel to use (default is \"#raibo\")") do |channel|
-    options.channel = channel
+  o.on("-r", "--room [ROOM]",
+       "specify the room to use (default is \"raibo\")") do |room|
+    options.room = room
  end
 
   o.on("-v", "--verbose", "show every incoming and outgoing line") do
@@ -51,12 +46,11 @@ if ARGV.length != 1
   exit 1
 end
 
-server, port = ARGV.shift.split(':')
+subdomain = ARGV.shift
 
-b = Raibo::Bot.new(server,
-                   :port    => port,
-                   :nick    => options.nick,
-                   :channel => options.channel,
+b = Raibo::Bot.new(subdomain,
+				   :token   => options.token,
+                   :room => options.room,
                    :verbose => options.verbose)
 b.load_config_file(options.botfile)
 b.run

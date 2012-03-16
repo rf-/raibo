@@ -3,10 +3,10 @@ module Raibo
     attr_accessor :docs
 
     def initialize(*args)
-      if args.first.is_a?(Raibo::Connection)
+      if args.first.is_a?(Raibo::CampfireConnection)
         @connection = args.shift
       else
-        @connection = Raibo::Connection.new(*args)
+        @connection = Raibo::CampfireConnection.new(*args)
       end
 
       reset
@@ -62,7 +62,7 @@ module Raibo
         @connection.open
         @connection.handle_lines do |line|
           begin
-            message = Raibo::Message.new(line)
+            message = @connection.construct_message(line)
           rescue => e
             if @connection.verbose
               puts "Error parsing line:"
