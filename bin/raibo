@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
-require 'rubygems'
+$:.unshift File.expand_path('../../lib', __FILE__)
+
 require 'raibo'
 require 'optparse'
 require 'ostruct'
