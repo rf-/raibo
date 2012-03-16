@@ -1,6 +1,6 @@
 module Raibo
   class IRCConnection
-    attr_accessor :server, :port, :nick, :channel
+    attr_accessor :server, :port, :nick, :channel, :verbose
 
     def initialize(server, opts={})
       @server  = server

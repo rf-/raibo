@@ -12,6 +12,10 @@ module Raibo
     end
 
     def open
+      if @token.nil? or @token == ''
+        raise "token is a required field for Campfire"
+      end
+      
       @campfire = Tinder::Campfire.new @subdomain, :token => @token
       @room = @campfire.find_room_by_name @room_name
       puts "Connected to room #{@room_name}" if @verbose

@@ -3,10 +3,14 @@ module Raibo
     attr_accessor :docs
 
     def initialize(*args)
-      if args.first.is_a?(Raibo::CampfireConnection)
+      if args.first.is_a?(Raibo::CampfireConnection) or args.first.is_a?(Raibo::IRCConnection)
         @connection = args.shift
-      else
+      elsif args.first == 'campfire'
+        args.shift
         @connection = Raibo::CampfireConnection.new(*args)
+      elsif args.first == 'irc'
+        args.shift
+        @connection = Raibo::IRCConnection.new(*args)
       end
 
       reset
