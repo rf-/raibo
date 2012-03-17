@@ -47,20 +47,23 @@ module Raibo
             line = m[:body]
             yield m
           end
-        rescue Tinder::ListenFailed => e
-          puts "Failed listening to #{@room_name}: #{e.message}"
+        rescue => e
+          puts "Error #{e.backtrace}" if @verbose
+          raise IOError
         end
       end
-    rescue IOError
+    rescue IOError => e
+      puts "IOError: #{e.backtrace}" if @verbose
       close
     end
 
     def say(*msgs)
-      msgs.each { |m| msg(m) }
-    end
-
-    def msg(m)
-      @room.speak m
+      m = msgs.join("\n")
+      if msgs.size == 1
+        @room.speak m
+      else
+        @room.paste m
+      end
       puts "<-- #{m}" if @verbose
     end
 
