@@ -16,49 +16,44 @@ module Raibo
       if @token.nil? or @token == ''
         raise "token is a required field for Campfire"
       end
-      
+
       @campfire = Tinder::Campfire.new @subdomain, :token => @token
       @room = @campfire.find_room_by_name @room_name
+      @name = @campfire.me['name']
+
       puts "Connected to room #{@room_name}" if @verbose
       @opened = true
     end
 
     def close
-      begin
-        @room.leave if @room
-      rescue
-      end
+      @room.leave if @room
+    rescue
     end
 
     def handle_lines
       @room.listen do |m|
-        begin
-          # Message Format:
-          # :body: the body of the message
-          # :user: Campfire user, which is itself a hash, of:
-          #    :id: User id
-          #    :name: User name
-          #    :email_address: Email address
-          #    :admin: Boolean admin flag
-          #    :created_at: User creation timestamp
-          #    :type: User type (e.g. Member)
-          # :id: Campfire message id
-          # :type: Campfire message type
-          # :room_id: Campfire room id
-          # :created_at: Message creation timestamp
-          
-          puts "--> #{m}" if @verbose
-          if m[:type] == 'TextMessage' and m[:user][:name] != 'raibo'
-            line = m[:body]
-            yield m
-          end
-        rescue => e
-          puts "Error #{e.backtrace}" if @verbose
-          raise IOError
+        # Message Format:
+        # :body: the body of the message
+        # :user: Campfire user, which is itself a hash, of:
+        #    :id: User id
+        #    :name: User name
+        #    :email_address: Email address
+        #    :admin: Boolean admin flag
+        #    :created_at: User creation timestamp
+        #    :type: User type (e.g. Member)
+        # :id: Campfire message id
+        # :type: Campfire message type
+        # :room_id: Campfire room id
+        # :created_at: Message creation timestamp
+
+        puts "--> #{m}" if @verbose
+        if m[:type] == 'TextMessage' and m[:user][:name] != @name
+          yield m
         end
       end
-    rescue IOError => e
-      puts "IOError: #{e.backtrace}" if @verbose
+    rescue => e
+      puts "Error:\n  #{e.backtrace.join('  ')}" if @verbose
+      retry
     end
 
     def say(*msgs)

@@ -63,29 +63,22 @@ module Raibo
 
     private
       def run_sync
-        while true do
-          @connection.open if not @connection.opened
-          @connection.handle_lines do |line|
+        @connection.open
+        @connection.handle_lines do |line|
+          message = @connection.construct_message(line)
+
+          @handlers.each do |handler|
             begin
-              message = @connection.construct_message(line)
-            rescue => e
+              if handler.is_a?(Proc)
+                break if @dsl.instance_exec(message, &handler)
+              else
+                break if handler.call(@connection, message)
+              end
+            rescue Exception => e
               if @connection.verbose
-                puts "Error parsing line:"
-                puts "  #{line}"
-                puts "  #{e.backtrace}"
+                puts "Handler exception:\n  #{e.backtrace.join("\n  ")}"
               end
-            end
-            @handlers.each do |handler|
-              begin
-                if handler.is_a?(Proc)
-                  break if @dsl.instance_exec(message, &handler)
-                else
-                  break if handler.call(@connection, message)
-                end
-              rescue Exception => e
-                puts "Handler Exception: #{e.backtrace}" if @connection.verbose
-                @connection.say e.inspect
-              end
+              @connection.say e.inspect
             end
           end
         end
