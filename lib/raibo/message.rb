@@ -6,13 +6,31 @@ module Raibo
     # Readers for higher-level attributes of the message.
     attr_reader :kind, :from, :to, :body
 
-    def initialize(line)
+    def initialize(*args)
+      case args.size
+      when 1
+        init_irc(*args)
+      when 4
+        init_campfire(*args)
+      else
+        throw 'Incorrect number of arguments to Message'
+      end
+    end
+
+    def init_irc(line)
       @prefix, @type, @middle, @trailing = parse_line(line)
 
       @kind = get_kind
       @from = get_from
       @to   = get_to
       @body = get_body
+    end
+    
+    def init_campfire(kind, from, to, body)
+      @kind = kind
+      @from = from
+      @to = to
+      @body = body
     end
 
     private

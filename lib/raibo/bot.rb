@@ -3,12 +3,16 @@ module Raibo
     attr_accessor :docs
 
     def initialize(*args)
-      if args.first.is_a?(Raibo::Connection)
+      if args.first.is_a?(Raibo::CampfireConnection) or args.first.is_a?(Raibo::IRCConnection)
         @connection = args.shift
-      else
-        @connection = Raibo::Connection.new(*args)
+      elsif args.first == 'campfire'
+        args.shift
+        @connection = Raibo::CampfireConnection.new(*args)
+      elsif args.first == 'irc'
+        args.shift
+        @connection = Raibo::IRCConnection.new(*args)
       end
-
+      
       reset
     end
 
@@ -59,26 +63,29 @@ module Raibo
 
     private
       def run_sync
-        @connection.open
-        @connection.handle_lines do |line|
-          begin
-            message = Raibo::Message.new(line)
-          rescue => e
-            if @connection.verbose
-              puts "Error parsing line:"
-              puts "  #{line}"
-              puts "  #{e.backtrace}"
-            end
-          end
-          @handlers.each do |handler|
+        while true do
+          @connection.open if not @connection.opened
+          @connection.handle_lines do |line|
             begin
-              if handler.is_a?(Proc)
-                break if @dsl.instance_exec(message, &handler)
-              else
-                break if handler.call(@connection, message)
+              message = @connection.construct_message(line)
+            rescue => e
+              if @connection.verbose
+                puts "Error parsing line:"
+                puts "  #{line}"
+                puts "  #{e.backtrace}"
               end
-            rescue Exception => e
-              @connection.say e.inspect
+            end
+            @handlers.each do |handler|
+              begin
+                if handler.is_a?(Proc)
+                  break if @dsl.instance_exec(message, &handler)
+                else
+                  break if handler.call(@connection, message)
+                end
+              rescue Exception => e
+                puts "Handler Exception: #{e.backtrace}" if @connection.verbose
+                @connection.say e.inspect
+              end
             end
           end
         end

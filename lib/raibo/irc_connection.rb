@@ -1,6 +1,6 @@
 module Raibo
-  class Connection
-    attr_accessor :server, :port, :nick, :channel
+  class IRCConnection
+    attr_accessor :server, :port, :nick, :channel, :verbose
 
     def initialize(server, opts={})
       @server  = server
@@ -68,6 +68,10 @@ module Raibo
     def send(str)
       puts "<-- #{str}" if @verbose
       @connection.puts(str)
+    end
+    
+    def construct_message(msg)
+      Raibo::Message.new(msg)
     end
   end
 end

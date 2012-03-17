@@ -8,27 +8,41 @@ require 'ostruct'
 
 options = OpenStruct.new
 options.botfile = 'Botfile'
-options.nick    = 'Raibo'
-options.channel = '#raibo'
 options.verbose = false
 
+options.nick = 'Raibo'
+options.channel = '#raibo'
+
+options.room    = 'Raibo'
+options.token   = ''
+
 opts = OptionParser.new do |o|
-  o.banner = "Usage: raibo <server>[:<port>] [options]"
+  o.banner = "Usage: raibo (<server>:<port> || campfire:<subdomain>) [options]"
 
   o.on("-b", "--botfile [FILE]",
        "specify the location of the bot's configuration (default is \"./Botfile\")") do |file|
     options.botfile = file
   end
 
+  o.on("-c", "--channel [CHANNEL]",
+       "specify the IRC channel to use (default is \"#raibo\")") do |channel|
+    options.channel = channel
+  end
+
   o.on("-n", "--nick [NICK]",
-       "specify the nick to use (default is \"Raibo\")") do |nick|
+       "specify the IRC nick to use (default is \"Raibo\")") do |nick|
     options.nick = nick
   end
 
-  o.on("-c", "--channel [CHANNEL]",
-       "specify the channel to use (default is \"#raibo\")") do |channel|
-    options.channel = channel
- end
+  o.on("-r", "--room [ROOM]",
+       "specify the Campfire room to use (default is \"Raibo\")") do |room|
+    options.room = room
+  end
+
+  o.on("-t", "--token [TOKEN]",
+       "specify the Campfire API token to use (required for Campfire)") do |token|
+    options.token = token
+  end
 
   o.on("-v", "--verbose", "show every incoming and outgoing line") do
     options.verbose = true
@@ -52,11 +66,21 @@ if ARGV.length != 1
 end
 
 server, port = ARGV.shift.split(':')
-
-b = Raibo::Bot.new(server,
-                   :port    => port,
+if server == 'campfire'
+	subdomain = port
+	b = Raibo::Bot.new('campfire',
+				   subdomain,
+				   :token   => options.token,
+                   :room    => options.room,
+                   :verbose => options.verbose)
+else #IRC
+	b = Raibo::Bot.new('irc',
+				   server,
+				   :port    => port,
                    :nick    => options.nick,
                    :channel => options.channel,
                    :verbose => options.verbose)
+end
+
 b.load_config_file(options.botfile)
 b.run
