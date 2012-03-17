@@ -8,11 +8,12 @@ module Raibo
       elsif args.first == 'campfire'
         args.shift
         @connection = Raibo::CampfireConnection.new(*args)
+        @connection.bot = self # to allow restart
       elsif args.first == 'irc'
         args.shift
         @connection = Raibo::IRCConnection.new(*args)
       end
-
+      
       reset
     end
 
@@ -63,30 +64,27 @@ module Raibo
 
     private
       def run_sync
-        while true do # if the connection is closed in the middle of handle_lines, it's reopened on the next iterations
-                      # or, it should ... I don't think it works yet
-          @connection.open
-          @connection.handle_lines do |line|
-            begin
-              message = @connection.construct_message(line)
-            rescue => e
-              if @connection.verbose
-                puts "Error parsing line:"
-                puts "  #{line}"
-                puts "  #{e.backtrace}"
-              end
+        @connection.open
+        @connection.handle_lines do |line|
+          begin
+            message = @connection.construct_message(line)
+          rescue => e
+            if @connection.verbose
+              puts "Error parsing line:"
+              puts "  #{line}"
+              puts "  #{e.backtrace}"
             end
-            @handlers.each do |handler|
-              begin
-                if handler.is_a?(Proc)
-                  break if @dsl.instance_exec(message, &handler)
-                else
-                  break if handler.call(@connection, message)
-                end
-              rescue Exception => e
-                puts "Handler Exception: #{e.backtrace}" if @connection.verbose
-                @connection.say e.inspect
+          end
+          @handlers.each do |handler|
+            begin
+              if handler.is_a?(Proc)
+                break if @dsl.instance_exec(message, &handler)
+              else
+                break if handler.call(@connection, message)
               end
+            rescue Exception => e
+              puts "Handler Exception: #{e.backtrace}" if @connection.verbose
+              @connection.say e.inspect
             end
           end
         end

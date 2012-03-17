@@ -2,7 +2,7 @@ require 'tinder'
 
 module Raibo
   class CampfireConnection
-    attr_accessor :subdomain, :token, :room_name, :verbose
+    attr_accessor :subdomain, :token, :room_name, :verbose, :bot
 
     def initialize(subdomain, opts={})
       @subdomain  = subdomain
@@ -54,7 +54,12 @@ module Raibo
       end
     rescue IOError => e
       puts "IOError: #{e.backtrace}" if @verbose
-      close
+      begin
+        close
+      rescue
+      end
+      puts "Reopening connection ..." if @verbose
+      @bot.run
     end
 
     def say(*msgs)
