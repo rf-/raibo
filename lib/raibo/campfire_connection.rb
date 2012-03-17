@@ -67,7 +67,7 @@ module Raibo
     end
 
     def construct_message(msg)
-      Raibo::Message.new('PRIVMSG', msg[:user][:name], '', msg[:body])
+      Raibo::Message.new(:message, msg[:user][:name], @room_name, msg[:body])
     end
   end
 end

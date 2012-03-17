@@ -71,7 +71,7 @@ module Raibo
     end
 
     def construct_message(msg)
-      Raibo::Message.new(msg)
+      Raibo::IrcMessage.new(msg)
     end
   end
 end
