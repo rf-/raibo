@@ -2,13 +2,14 @@ require 'tinder'
 
 module Raibo
   class CampfireConnection
-    attr_accessor :subdomain, :token, :room_name, :verbose, :bot
+    attr_accessor :subdomain, :token, :room_name, :verbose, :opened
 
     def initialize(subdomain, opts={})
       @subdomain  = subdomain
       @token      = opts[:token]
       @room_name  = opts[:room] || 'Raibo'
       @verbose    = !!opts[:verbose]
+      @opened     = false
     end
 
     def open
@@ -19,10 +20,14 @@ module Raibo
       @campfire = Tinder::Campfire.new @subdomain, :token => @token
       @room = @campfire.find_room_by_name @room_name
       puts "Connected to room #{@room_name}" if @verbose
+      @opened = true
     end
 
     def close
-      @room.leave if @room
+      begin
+        @room.leave if @room
+      rescue
+      end
     end
 
     def handle_lines
@@ -54,12 +59,6 @@ module Raibo
       end
     rescue IOError => e
       puts "IOError: #{e.backtrace}" if @verbose
-      begin
-        close
-      rescue
-      end
-      puts "Reopening connection ..." if @verbose
-      @bot.run
     end
 
     def say(*msgs)
