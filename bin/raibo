@@ -10,7 +10,7 @@ options = OpenStruct.new
 options.botfile = 'Botfile'
 options.verbose = false
 
-options.nick = 'Raibo'
+options.nick    = 'Raibo'
 options.channel = '#raibo'
 
 options.room    = 'Raibo'
@@ -66,20 +66,23 @@ if ARGV.length != 1
 end
 
 server, port = ARGV.shift.split(':')
+
 if server == 'campfire'
-	subdomain = port
-	b = Raibo::Bot.new('campfire',
-				   subdomain,
-				   :token   => options.token,
-                   :room    => options.room,
-                   :verbose => options.verbose)
+  subdomain = port
+  b = Raibo::Bot.new('campfire',
+    subdomain,
+    :token   => options.token,
+    :room    => options.room,
+    :verbose => options.verbose
+  )
 else #IRC
-	b = Raibo::Bot.new('irc',
-				   server,
-				   :port    => port,
-                   :nick    => options.nick,
-                   :channel => options.channel,
-                   :verbose => options.verbose)
+  b = Raibo::Bot.new('irc',
+    server,
+    :port    => port,
+    :nick    => options.nick,
+    :channel => options.channel,
+    :verbose => options.verbose
+  )
 end
 
 b.load_config_file(options.botfile)
